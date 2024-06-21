@@ -99,24 +99,17 @@ function Home() {
     }
   }, [socket, posts]);
   useEffect(() => {
-    if (posts.length === 0 && posts) {
-      setIsLoading(true);
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-        setShowMessage(true);
-      }, 5000);
-      return () => {
-        clearTimeout(timer); // This will clear the timeout if the component unmounts before the timeout finishes
-        setIsLoading(false);
-      };
-    }
-  }, [posts]);
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+  }, []);
   return (
-    <div>
-      <div className="p-[20px] shadow-lg">
+    <div className="bg-[#191919] pb-[200px] h-fit">
+      <div className="p-[20px] shadow-lg border-b-[1px] border-[#fff]">
         <div className="flex items-center">
           <p
-            className="text-[25px] text-[#008080] float-right me-auto cursor-pointer ml-[4%] font-extrabold , heading"
+            className="text-[25px] text-[#fff] float-right me-auto cursor-pointer ml-[4%] font-bols , heading"
             onClick={() => {
               router.push("/");
             }}
@@ -125,12 +118,20 @@ function Home() {
           </p>
           <div className="ms-auto">
             <button
-              className="mr-[50px] text-[20px] bg-[#adeb21] p-[10px] px-[30px] rounded-lg cursor-pointer"
+              className="text-[20px] text-[#fff] p-[10px] cursor-pointer mr-[10px] border-b-[2px] border-[#5199C2]"
               onClick={() => {
-                router.push("/create");
+                router.push("/");
               }}
             >
-              Post +
+              Home
+            </button>
+            <button
+              className="mr-[20px] text-[20px] text-[#C2C2C2] p-[10px] cursor-pointer"
+              onClick={() => {
+                router.push("/");
+              }}
+            >
+              Create
             </button>
             <button className="lg:text-[20px] md:text-[17px] text-[13px]"></button>
           </div>
@@ -138,53 +139,35 @@ function Home() {
       </div>
       <div className="mx-[5%]">
         {/* <p className="text-[23px] mt-[50px]">Create reports or updates</p> */}
-        <p class="text-[25px] text-center mr-[5px] text-[#008080] mt-[50px] font-bold">
-          Welcome to Neighbour Linkup!
+        <p class="text-[25px] text-start mr-[5px] text-[#fff] mt-[50px] font-normal">
+          Latest or ongoing events, reports or updates
         </p>
-        <div className="flex justify-center">
-          <Link
-            className="text-[25px] text-center mr-[5px] text-[#adeb21] mt-[5px] underline font-bold cursor-pointer"
-            href={`/create`}
-          >
-            What's in your mind right now, {me["username"]}?
-          </Link>
-        </div>
-        {posts.map((item) => {
-          return (
-            <div
-              key={item.id}
-              className="max-w-md mx-auto bg-gray-100 rounded-xl shadow-2xl overflow-hidden md:max-w-2xl m-3 transform transition duration-500 ease-in-out hover:scale-105 mt-10"
-            >
-              <div className="">
-                <div className="md:flex-shrink-0">
-                  <img
-                    className="h-full w-full object-cover"
-                    src={item.img}
-                    alt={item.title}
-                  />
-                </div>
-                <div className="p-8">
-                  <div className="flex space-x-1.5 mb-[10px]">
-                    <div className="uppercase tracking-wide text-xs text-blue-800 font-bold">
-                      {item.madeBy}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(item.createdAt))} ago
-                    </div>
-                  </div>
-                  <a
-                    href="#"
-                    className="block mt-1 text-2xl leading-tight font-bold text-gray-900 hover:text-blue-800"
-                  >
-                    {item.title}
-                  </a>
-                  <p className="mt-2 text-base text-gray-700">{item.summary}</p>
-                  <p className="mt-2 text-base text-gray-700">{item.details}</p>
-                </div>
+        <div className="mt-[30px] h-fit flex flex-wrap w-fit">
+          {posts.map((item) => {
+            return (
+              <div
+                key={item.id}
+                className="mr-[30px] bg-[#1F1F1F] pb-[30px] rounded-lg h-fit w-[394px] mb-[40px]"
+              >
+                <img
+                  src={item.img}
+                  alt="postImg"
+                  className="w-[445px] rounded-lg"
+                />
+                <p className="text-[#fff] mt-[25px] text-[22px] mx-[20px]">
+                  {item.title}
+                </p>
+                <p className="text-[#BBBBBB] mt-[7px] text-[17px] mx-[20px]">
+                  {item.summary}
+                </p>
+                <hr className="my-[20px] mx-[20px] bg-gray-200" />
+                <p className="text-[#9A9A9A] mt-[7px] text-[17px] mx-[20px]">
+                  Posted by - {item.madeBy}
+                </p>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
         {isLoading && (
           <Box
             sx={{
@@ -196,16 +179,6 @@ function Home() {
           >
             <CircularProgress />
           </Box>
-        )}
-        {showMessage && (
-          <div className="flex justify-center">
-            <p className="text-[20px] mr-[10px]">
-              No post yet! Why don't you create one?
-            </p>
-            <Link href="/create" className="text-[20px] text-[#0000F5]">
-              Create?
-            </Link>
-          </div>
         )}
       </div>
     </div>

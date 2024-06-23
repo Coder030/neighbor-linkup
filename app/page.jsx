@@ -2,15 +2,27 @@
 "use client";
 
 import React, { useContext, useEffect, useRef, useState } from "react";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
 import { io } from "socket.io-client";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
+import "./globals.css";
 
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 
 function Home() {
+  const settings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 3,
+  };
+
   const [showMessage, setShowMessage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -104,84 +116,85 @@ function Home() {
       setIsLoading(false);
     }, 5000);
   }, []);
+  const sliders = posts.map((item) => {
+    return (
+      <div
+        key={item.id}
+        className="mr-[100px] bg-[#1F1F1F] pb-[30px] rounded-lg h-[543px] w-[30.9%] mb-[40px]"
+      >
+        <img src={item.img} alt="postImg" className="w-[445px] rounded-lg" />
+        <p className="text-[#fff] mt-[25px] text-[22px] mx-[20px]">
+          {item.title}
+        </p>
+        <p className="text-[#BBBBBB] mt-[7px] text-[17px] mx-[20px]">
+          {item.summary}
+        </p>
+        <hr className="my-[20px] mx-[20px] bg-gray-200" />
+        <p className="text-[#9A9A9A] mt-[7px] text-[17px] mx-[20px]">
+          Posted by - {item.madeBy}
+        </p>
+      </div>
+    );
+  });
   return (
-    <div className="bg-[#191919] pb-[200px] h-fit">
-      <div className="p-[20px] shadow-lg border-b-[1px] border-[#fff]">
-        <div className="flex items-center">
-          <p
-            className="text-[25px] text-[#fff] float-right me-auto cursor-pointer ml-[4%] font-bols , heading"
-            onClick={() => {
-              router.push("/");
-            }}
-          >
-            Neighbour Linkup
+    <>
+      <div className="bg-[#191919] pb-[0px] h-fit">
+        <div className="p-[20px] shadow-lg border-b-[1px] border-[#fff]">
+          <div className="flex items-center">
+            <p
+              className="text-[25px] text-[#fff] float-right me-auto cursor-pointer ml-[4%] font-bols , heading"
+              onClick={() => {
+                router.push("/");
+              }}
+            >
+              Neighbour Linkup
+            </p>
+            <div className="ms-auto">
+              <button
+                className="text-[20px] text-[#fff] p-[10px] cursor-pointer mr-[10px] border-b-[2px] border-[#5199C2]"
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
+                Home
+              </button>
+              <button
+                className="mr-[20px] text-[20px] text-[#C2C2C2] p-[10px] cursor-pointer"
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
+                Create Event
+              </button>
+              <button
+                className="mr-[20px] text-[20px] text-[#C2C2C2] p-[10px] cursor-pointer"
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
+                Create Report / Update
+              </button>
+              <button className="lg:text-[20px] md:text-[17px] text-[13px]"></button>
+            </div>
+          </div>
+        </div>
+        <div className="mx-[5%]">
+          <p class="text-[25px] text-start mr-[5px] text-[#fff] mt-[50px] font-normal">
+            Latest or ongoing events, reports or updates
           </p>
-          <div className="ms-auto">
-            <button
-              className="text-[20px] text-[#fff] p-[10px] cursor-pointer mr-[10px] border-b-[2px] border-[#5199C2]"
-              onClick={() => {
-                router.push("/");
-              }}
+          <div className="slider-container">
+            <Slider
+              {...settings}
+              dots={false}
+              arrows={false}
+              className="custom-slider"
             >
-              Home
-            </button>
-            <button
-              className="mr-[20px] text-[20px] text-[#C2C2C2] p-[10px] cursor-pointer"
-              onClick={() => {
-                router.push("/");
-              }}
-            >
-              Create
-            </button>
-            <button className="lg:text-[20px] md:text-[17px] text-[13px]"></button>
+              {sliders}
+            </Slider>
           </div>
         </div>
       </div>
-      <div className="mx-[5%]">
-        {/* <p className="text-[23px] mt-[50px]">Create reports or updates</p> */}
-        <p class="text-[25px] text-start mr-[5px] text-[#fff] mt-[50px] font-normal">
-          Latest or ongoing events, reports or updates
-        </p>
-        <div className="mt-[30px] h-fit flex flex-wrap w-fit">
-          {posts.map((item) => {
-            return (
-              <div
-                key={item.id}
-                className="mr-[30px] bg-[#1F1F1F] pb-[30px] rounded-lg h-fit w-[394px] mb-[40px]"
-              >
-                <img
-                  src={item.img}
-                  alt="postImg"
-                  className="w-[445px] rounded-lg"
-                />
-                <p className="text-[#fff] mt-[25px] text-[22px] mx-[20px]">
-                  {item.title}
-                </p>
-                <p className="text-[#BBBBBB] mt-[7px] text-[17px] mx-[20px]">
-                  {item.summary}
-                </p>
-                <hr className="my-[20px] mx-[20px] bg-gray-200" />
-                <p className="text-[#9A9A9A] mt-[7px] text-[17px] mx-[20px]">
-                  Posted by - {item.madeBy}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-        {isLoading && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: "150px",
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        )}
-      </div>
-    </div>
+    </>
   );
 }
 

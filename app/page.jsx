@@ -1,18 +1,15 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {  useEffect, useMemo, useRef, useState } from "react";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import { io } from "socket.io-client";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
 import "./globals.css";
 
 import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
+import { getDistance } from "geolib";
 
 function Home() {
   const settings = {
@@ -43,8 +40,6 @@ function Home() {
     }
   }
   const [location, setLocation] = useState(null);
-  const [lat, setLat] = useState(null);
-  const [lon, setLon] = useState(null);
 
   useEffect(() => {
     // Check for Geolocation support
@@ -66,16 +61,20 @@ function Home() {
       }
     );
   }, []);
-  useEffect(() => {
+
+  const [lat, lon] = useMemo(() => {
     if (location) {
-      setLat(location.latitude);
-      setLon(location.longitude);
+      return [location.latitude, location.longitude];
     }
+    return [null, null];
   }, [location]);
+
   const [me, setMe] = useState({});
   const router = useRouter();
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
+  const [sortByTime, toggleSortByTime] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(null);
 
   useEffect(() => {
     if (!socketRef.current) {
@@ -93,7 +92,7 @@ function Home() {
       });
       const data = await rep.json();
       if (data["message"] == "nvt") {
-        router.push("/signin");
+        // router.push("/signin");
       } else {
         setMe(data["data"]);
       }
@@ -116,16 +115,56 @@ function Home() {
       setIsLoading(false);
     }, 5000);
   }, []);
-  const sliders = posts.map((item) => {
+
+  const sortedPostsInclDistance = useMemo(() => {
+    return posts
+      .reduce((result, post) => {
+        if (
+          !searchQuery ||
+          post.title.toLowerCase().includes(searchQuery.toLowerCase())
+        ) {
+          const distance =
+            lat && lon && post.Lat && post.Long
+              ? getDistance(
+                  { latitude: lat, longitude: lon },
+                  { latitude: post.Lat, longitude: post.Long }
+                )
+              : null;
+
+          result.push({
+            ...post,
+            distance,
+          });
+        }
+
+        return result;
+      }, [])
+      .sort((a, b) => {
+        if (sortByTime) {
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        } else {
+          return (b.distance ?? Infinity) - (a.distance ?? Infinity);
+        }
+      });
+  }, [posts, searchQuery, sortByTime, lat, lon]);
+
+  const sliders = sortedPostsInclDistance.map((item) => {
     return (
       <div
         key={item.id}
         className="mr-[100px] bg-[#1F1F1F] pb-[30px] rounded-lg h-[543px] w-[30.9%] mb-[40px]"
       >
         <img src={item.img} alt="postImg" className="w-[445px] rounded-lg" />
-        <p className="text-[#fff] mt-[25px] text-[22px] mx-[20px]">
-          {item.title}
-        </p>
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-[#fff] text-[22px] mx-[20px]">{item.title}</p>
+          {item.distance && (
+            <p className="text-[#fff]">
+              {(item.distance / 1000).toFixed(3)} km
+            </p>
+          )}
+        </div>
         <p className="text-[#BBBBBB] mt-[7px] text-[17px] mx-[20px]">
           {item.summary}
         </p>
@@ -136,6 +175,7 @@ function Home() {
       </div>
     );
   });
+
   return (
     <>
       <div className="bg-[#191919] pb-[0px] h-fit">
@@ -171,31 +211,61 @@ function Home() {
                 onClick={() => {
                   router.push("/");
                 }}
-              >
-                Create Report / Update
-              </button>
-              <button className="lg:text-[20px] md:text-[17px] text-[13px]"></button>
+                >
+                  Create Event
+                </button>
+                <button
+                  className="mr-[20px] text-[20px] text-[#C2C2C2] p-[10px] cursor-pointer"
+                  onClick={() => {
+                    router.push("/");
+                  }}
+                >
+                  Create Report / Update
+                </button>
+                <button className="lg:text-[20px] md:text-[17px] text-[13px]"></button>
+              </div>
+            </div>
+          </div>
+          <div className="mx-[5%] flex flex-col gap-4 py-7">
+            <div className="flex flex-col lg:flex-row lg:justify-between items-center">
+              <p class="text-[25px] text-start mr-[5px] text-[#fff] font-normal">
+                Latest or ongoing events, reports or updates
+              </p>
+              <div className="grid grid-cols-2 items-center gap-4">
+                <div class="relative flex">
+                  <input
+                    type="search"
+                    class="relative m-0 block flex-auto rounded border border-solid border-neutral-200 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-surface outline-none transition duration-200 ease-in-out text-white focus:z-[3] focus:border-2 focus:shadow-inset focus:outline-none motion-reduce:transition-none"
+                    placeholder="Search"
+                    aria-label="Search"
+                    value={searchQuery}
+                    onChange={({ target }) => setSearchQuery(target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <label htmlFor="sort-by-time" className="text-white">
+                    Show recently created event
+                  </label>
+                  <input
+                    id="sort-by-time"
+                    type="checkbox"
+                    checked={sortByTime}
+                    onClick={() => toggleSortByTime((prev) => !prev)}
+                    className="h-7 w-7"
+                  />
+                </div>{" "}
+              </div>
+            </div>
+            <div className="slider-container">
+              <Slider {...settings} dots={false} arrows={false}>
+                {sliders}
+              </Slider>
             </div>
           </div>
         </div>
-        <div className="mx-[5%]">
-          <p class="text-[25px] text-start mr-[5px] text-[#fff] mt-[50px] font-normal">
-            Latest or ongoing events, reports or updates
-          </p>
-          <div className="slider-container">
-            <Slider
-              {...settings}
-              dots={false}
-              arrows={false}
-              className="custom-slider"
-            >
-              {sliders}
-            </Slider>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-export default Home;
+      </>
+    );
+  }
+  
+  export default Home;
+  

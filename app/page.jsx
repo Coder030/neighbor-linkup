@@ -78,7 +78,7 @@ function Home() {
   const socketRef = useRef(null);
   const [sortByTime, toggleSortByTime] = useState(false);
   const [searchQuery, setSearchQuery] = useState(null);
-  // default value 0 means sort by new to old, if nothing is selected by the user
+  
 
   const [sortAs, setSortAs] = useState(0);
 
@@ -148,12 +148,12 @@ function Home() {
       .sort((a, b) => {
         const isSortDescOrder = sortAs === 1;
         if (isSortDescOrder) {
-          // if sortAs is 1, that means user selected old to new, then we subtract times to get the sorted result
+         
           return (
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
         } else {
-          // if sortAs is 0, that means user selected new to old, then we subtract times to get the sorted result
+          
           return (
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
@@ -321,11 +321,11 @@ function Home() {
                 {isOpen && (
                   <div className="absolute mt-10 flex flex-col items-start rounded-lg p-2 w-full bg-slate-500">
                     {list.map((item, i) => (
-                      // onClick to set current sortAs option, needed a unique value, so added it in list.json
+                      
                       <div
                         onClick={() => {
                           setSortAs(item.value);
-                          // hmlog chahte ki click krne ke baad dropdown close hojaye
+                          
                           setIsOpen(false);
                         }}
                         className="flex w-full justify-between p-4 cursor-pointer rounded-r-lg border-l-transparent border-l-3"

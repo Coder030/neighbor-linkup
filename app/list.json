@@ -1,0 +1,10 @@
+[
+    {
+        "sortAs":"New to Old",
+        "value":0
+    },
+    {
+        "sortAs":"Old to New",
+        "value":1
+    }
+]
